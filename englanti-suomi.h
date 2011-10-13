@@ -10,5 +10,5 @@ struct sana {
 
 size_t get_filesize(void);
 
-#ifndef /* _ENGLANTI_SUOMI_H_ */
+#endif /* _ENGLANTI_SUOMI_H_ */
 

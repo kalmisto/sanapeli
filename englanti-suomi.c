@@ -46,3 +46,4 @@ get_filesize(void)
 
 	return sb.st_size;
 }
+
