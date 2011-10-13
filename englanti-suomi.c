@@ -5,27 +5,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 
-#define SANA_TIEDOSTO "/home/kalle/programs/sanastoja/sanoja.txt"
-
-struct sana {
-	char suomi[128];
-	char eng[128];
-};
-
-
-/* Return size of the file 'fname */
-size_t
-get_filesize()
-{
-	struct stat sb;
-
-	if (stat(SANA_TIEDOSTO, &sb) < 0) {
-		fprintf(stderr, "Tiedoston avaus epäonnistui\n");
-		exit(2);
-	}
-
-	return sb.st_size;
-}
+#include "englanti-suomi.h"
 
 
 int
@@ -51,4 +31,18 @@ main(int argc, const char *argv[])
 		fclose(sanatiedosto);
 
 	return 0;
+}
+
+/* Return size of the file 'fname */
+size_t
+get_filesize(void)
+{
+	struct stat sb;
+
+	if (stat(SANA_TIEDOSTO, &sb) < 0) {
+		fprintf(stderr, "Tiedoston avaus epäonnistui\n");
+		exit(2);
+	}
+
+	return sb.st_size;
 }
