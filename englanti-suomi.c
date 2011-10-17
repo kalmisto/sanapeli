@@ -12,7 +12,7 @@ int
 main(int argc, const char *argv[])
 {
 	FILE	*sanatiedosto;
-	char	rivi[BUFSIZ];
+	char	 rivi[BUFSIZ];
 
 	sanatiedosto = fopen(SANA_TIEDOSTO, "r");
 	if (sanatiedosto == NULL) {
@@ -20,12 +20,7 @@ main(int argc, const char *argv[])
 		exit(1);
 	}
 
-	fprintf(stdout, "Tiedoston koko tavuina: %lld\n", (long long) get_filesize());
-	/*
-	while ((fgets(rivi, BUFSIZ - 1, sanatiedosto)) != NULL) {
-		fprintf(stdout, "%s", rivi);
-	}
-	*/
+	fprintf(stdout, "Tiedoston rivien määrä: %zu\n", get_linecount(sanatiedosto));
 
 	if (sanatiedosto != NULL)
 		fclose(sanatiedosto);
@@ -33,7 +28,6 @@ main(int argc, const char *argv[])
 	return 0;
 }
 
-/* Return size of the file 'fname */
 size_t
 get_filesize(void)
 {
@@ -45,5 +39,19 @@ get_filesize(void)
 	}
 
 	return sb.st_size;
+}
+
+size_t
+get_linecount(FILE *fname)
+{
+	int c;
+	int n = 0;
+
+	do {
+		c = fgetc(fname);
+		if (c == '\n')
+			n++;
+	} while (c != EOF);
+	return n;
 }
 
