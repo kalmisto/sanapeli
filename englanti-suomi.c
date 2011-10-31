@@ -36,6 +36,8 @@ main(int argc, const char *argv[])
 	rewind(sanatiedosto);
 	while (fgets(rivi, BUFSIZ, sanatiedosto) != NULL) {
 		sanaparit[i] = wordsplitter(rivi);
+		if (sanaparit[i].eng[0] == '\0' || sanaparit[i].fin[0] == '\0')
+			err(3, "Apua apua, NULL rivillä %d\n", i+1);
 		i++;
 	}
 	i = randint(0, rivilkm);
@@ -87,10 +89,16 @@ randint(size_t alku, size_t loppu)
 
 
 struct sana
-wordsplitter(char *rivi) /*tee seuraavaksi virhetarkastelu = merkin osalta, vinkki index...+ satunnaislukugenerointi */
+wordsplitter(char *rivi) 
 {
 	char	*loppuosa;
 	struct sana leikattu;
+
+	memset(&leikattu, 0, sizeof(leikattu));
+
+	if (strchr(rivi, '=') == NULL) {
+		return leikattu;
+	}
 
 	strtok_r(rivi, "=", &loppuosa);
 	strncpy(leikattu.eng, rivi, WORDLEN);
