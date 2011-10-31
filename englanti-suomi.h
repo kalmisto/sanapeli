@@ -1,15 +1,18 @@
 #ifndef _ENGLANTI_SUOMI_H_
 #define _ENGLANTI_SUOMI_H_
 
-#define SANA_TIEDOSTO "/home/kalle/bin/programs/sanastoja/sanoja.txt"
+#define SANA_TIEDOSTO "sanat.txt"
+#define WORDLEN 128
 
 struct sana {
-	char eng[128];
-	char fin[128];
+	char eng[WORDLEN];
+	char fin[WORDLEN];
 };
 
 size_t get_filesize(void);
 size_t get_linecount(FILE *);
+size_t randint(size_t, size_t);
+struct sana wordsplitter(char *);
 void print_sanaparit(struct sana *, size_t);
 
 #endif /* _ENGLANTI_SUOMI_H_ */

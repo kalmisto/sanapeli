@@ -1,4 +1,4 @@
 CC=clang
 
 all:
-	${CC} -ansi -pedantic -Wall -o enkku englanti-suomi.c
+	${CC} -posix -pedantic -Wall -o enkku englanti-suomi.c

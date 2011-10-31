@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "englanti-suomi.h"
 
@@ -14,29 +15,35 @@ main(int argc, const char *argv[])
 {
 	FILE	*sanatiedosto;
 	char	 rivi[BUFSIZ];
-	size_t	 sanalkm;
+	int	 i = 0;
+	size_t	 rivilkm;
 	struct sana *sanaparit;
-	char	*c;
 
-	sanatiedosto = fopen(SANA_TIEDOSTO, "r");
+	srand(time(NULL));
+
+	sanatiedosto = fopen(SANA_TIEDOSTO, "r"); /* avataan sanat.txt sanatiedosto kahvaan */
 	if (sanatiedosto == NULL) {
 		fprintf(stderr, "Tiedoston avaus epäonnistui\n");
 		exit(1);
 	}
 
-	sanalkm = get_linecount(sanatiedosto);
-	sanaparit = calloc(sanalkm, sizeof(struct sana));
-	if (sanaparit == NULL)
-		err(1, "malloc");
-	strncpy(sanaparit[0].eng, "dog\0", 4);
-	strncpy(sanaparit[0].fin, "koira\0", 6);
-	char a;
-	char b;
-	strcmp(&a, &b);
+	rivilkm = get_linecount(sanatiedosto); /*laskee sanatiedoston rivien lukumäärän*/
+	sanaparit = calloc(rivilkm, sizeof(struct sana)); /* varataan muistia sanalkm * sizeof(...) */
+	if (sanaparit == NULL) /* NULL viittaa tyhjään eli muistipaikkoja ei ole olemassa */
+		err(1, "muistin varaus epäonnistui");
 
-	print_sanaparit(sanaparit, sanalkm);
-	fprintf(stdout, "Tiedoston rivien määrä: %zu\n", sanalkm);
 
+	rewind(sanatiedosto);
+	while (fgets(rivi, BUFSIZ, sanatiedosto) != NULL) {
+		sanaparit[i] = wordsplitter(rivi);
+		i++;
+	}
+	i = randint(0, rivilkm);
+	printf("%s %s", sanaparit[i].eng, sanaparit[i].fin);
+	/*
+	print_sanaparit(sanaparit, rivilkm);
+	fprintf(stdout, "Tiedoston rivien määrä: %zu\n", rivilkm);
+	*/
 	if (sanaparit != NULL)
 		free(sanaparit);
 	if (sanatiedosto != NULL)
@@ -72,13 +79,34 @@ get_linecount(FILE *fname)
 	return n;
 }
 
+size_t
+randint(size_t alku, size_t loppu)
+{
+	return (rand() % loppu + 1);
+}
+
+
+struct sana
+wordsplitter(char *rivi) /*tee seuraavaksi virhetarkastelu = merkin osalta, vinkki index...+ satunnaislukugenerointi */
+{
+	char	*loppuosa;
+	struct sana leikattu;
+
+	strtok_r(rivi, "=", &loppuosa);
+	strncpy(leikattu.eng, rivi, WORDLEN);
+	strncpy(leikattu.fin, loppuosa, WORDLEN);
+
+	return leikattu; /* 0 == virhe */
+
+}
+
 void
 print_sanaparit(struct sana *sp, size_t koko)
 {
 	int i = 0;
 
 	for (i = 0; i < koko; i++) {
-		if (strlen(sp[i].eng) != 0 && strlen(sp[i].fin) != 0)
+		if (strlen(sp[i].eng) > 0 && strlen(sp[i].fin) > 0)
 			fprintf(stdout, "%s = %s\n", sp[i].eng, sp[i].fin);
 	}
 }
