@@ -13,13 +13,15 @@
 int
 main(int argc, const char *argv[])
 {
-	FILE	*sanatiedosto;
+	FILE	*sanatiedosto = NULL;
 	char	 rivi[BUFSIZ];
 	int	 i = 0;
+	size_t	*vaihtoehdot_idx = NULL;
 	size_t	 rivilkm;
+	size_t	 kysyttava;
 	struct sana *sanaparit;
 
-	srand(time(NULL));
+	srand(time(NULL)); /*  alustetaan satunnaislukugeneraattori */
 
 	sanatiedosto = fopen(SANA_TIEDOSTO, "r"); /* avataan sanat.txt sanatiedosto kahvaan */
 	if (sanatiedosto == NULL) {
@@ -32,24 +34,36 @@ main(int argc, const char *argv[])
 	if (sanaparit == NULL) /* NULL viittaa tyhjään eli muistipaikkoja ei ole olemassa */
 		err(1, "muistin varaus epäonnistui");
 
-
-	rewind(sanatiedosto);
 	while (fgets(rivi, BUFSIZ, sanatiedosto) != NULL) {
 		sanaparit[i] = wordsplitter(rivi);
 		if (sanaparit[i].eng[0] == '\0' || sanaparit[i].fin[0] == '\0')
 			err(3, "Apua apua, NULL rivillä %d\n", i+1);
 		i++;
 	}
-	i = randint(0, rivilkm);
-	printf("%s %s", sanaparit[i].eng, sanaparit[i].fin);
+	if (sanatiedosto != NULL) /* voidaan sulkea tässä vaiheessa */
+		fclose(sanatiedosto);
+
+	vaihtoehdot_idx = random_idx_arr(rivilkm);
+
+	kysyttava = randint(0, KYS_LKM - 1);
+
+	fprintf(stdout, "%zu\n", vaihtoehdot_idx[kysyttava]);
+	for (i=0; i < KYS_LKM; i++) {
+		if (i+1 == KYS_LKM)
+			fprintf(stdout, "%zu\n", vaihtoehdot_idx[i]);
+		else
+			fprintf(stdout, "%zu, ", vaihtoehdot_idx[i]);
+	}
 	/*
 	print_sanaparit(sanaparit, rivilkm);
 	fprintf(stdout, "Tiedoston rivien määrä: %zu\n", rivilkm);
 	*/
 	if (sanaparit != NULL)
 		free(sanaparit);
-	if (sanatiedosto != NULL)
-		fclose(sanatiedosto);
+	if (vaihtoehdot_idx != NULL)
+		free(vaihtoehdot_idx);
+	sanaparit = NULL;
+	vaihtoehdot_idx = NULL;
 
 	return 0;
 }
@@ -78,6 +92,8 @@ get_linecount(FILE *fname)
 		if (c == '\n')
 			n++;
 	} while (c != EOF);
+	rewind(fname); /* "tiedostotela" palautetaan alkuun (getlinecount vei telan loppuun) */
+
 	return n;
 }
 
@@ -87,9 +103,33 @@ randint(size_t alku, size_t loppu)
 	return (rand() % loppu + 1);
 }
 
+size_t *
+random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivejä sanat.txt tiedostosta) */
+{
+	size_t 	 j = 0;
+	size_t	 i = 0;
+	size_t	*t = NULL;
+
+	t = calloc(KYS_LKM, sizeof(size_t));
+	if (t == NULL)
+		err(1, "malloc failed in func: random_idx_arr()");
+
+	for (i = 0; i < KYS_LKM; i++) {  
+		t[i] = randint(1, riveja);
+		while (i != 0 && j < i) { /* tarkastetaan onko satunnaisluku saatu jo aikaisemmin */
+			if (t[j] == t[i]) {
+				t[i] = randint(1, riveja); /*jos satunnaisluku on saatu aikaisemmin, luodaan uusi */
+				j--; /* koska while-silmukan j++ nostaa luvun haluttuun nollaan. eli taulukkoa aletaan taas käymään nolla-indeksista alkaen */
+			}
+			j++;
+		}
+	}
+
+	return t;
+}
 
 struct sana
-wordsplitter(char *rivi) 
+wordsplitter(char *rivi)
 {
 	char	*loppuosa;
 	struct sana leikattu;
