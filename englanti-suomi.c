@@ -47,17 +47,18 @@ main(int argc, const char *argv[])
 
 	kysyttava = randint(0, KYS_LKM - 1);
 
-	fprintf(stdout, "%zu\n", vaihtoehdot_idx[kysyttava]);
-	for (i=0; i < KYS_LKM; i++) {
-		if (i+1 == KYS_LKM)
-			fprintf(stdout, "%zu\n", vaihtoehdot_idx[i]);
-		else
-			fprintf(stdout, "%zu, ", vaihtoehdot_idx[i]);
-	}
-	/*
-	print_sanaparit(sanaparit, rivilkm);
-	fprintf(stdout, "Tiedoston rivien määrä: %zu\n", rivilkm);
-	*/
+	fprintf(stdout, "Sanapeli 1.0, englanti-suomi\n");
+	fprintf(stdout, "Valitse seuraavalle suomenkielinen vastine (1-8)\n\n");
+	fprintf(stdout, ">> %s\n\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng); 
+	fprintf(stdout, "\n 1. %s",sanaparit[vaihtoehdot_idx[1]].fin);
+	fprintf(stdout, "\n 2. %s",sanaparit[vaihtoehdot_idx[2]].fin);
+	fprintf(stdout, "\n 3. %s",sanaparit[vaihtoehdot_idx[3]].fin);
+	fprintf(stdout, "\n 4. %s",sanaparit[vaihtoehdot_idx[4]].fin);
+	fprintf(stdout, "\n 5. %s",sanaparit[vaihtoehdot_idx[5]].fin);
+	fprintf(stdout, "\n 6. %s",sanaparit[vaihtoehdot_idx[6]].fin);
+	fprintf(stdout, "\n 7. %s",sanaparit[vaihtoehdot_idx[7]].fin);
+	fprintf(stdout, "\n 8. %s",sanaparit[vaihtoehdot_idx[8]].fin);
+
 	if (sanaparit != NULL)
 		free(sanaparit);
 	if (vaihtoehdot_idx != NULL)
@@ -114,7 +115,7 @@ random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunna
 	if (t == NULL)
 		err(1, "malloc failed in func: random_idx_arr()");
 
-	for (i = 0; i < KYS_LKM; i++) {  
+	for (i = 0; i < KYS_LKM; i++) {
 		t[i] = randint(1, riveja);
 		while (i != 0 && j < i) { /* tarkastetaan onko satunnaisluku saatu jo aikaisemmin */
 			if (t[j] == t[i]) {
