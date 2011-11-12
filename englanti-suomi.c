@@ -49,15 +49,9 @@ main(int argc, const char *argv[])
 
 	fprintf(stdout, "Sanapeli 1.0, englanti-suomi\n");
 	fprintf(stdout, "Valitse seuraavalle suomenkielinen vastine (1-8)\n\n");
-	fprintf(stdout, ">> %s\n\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng); 
-	fprintf(stdout, "\n 1. %s",sanaparit[vaihtoehdot_idx[1]].fin);
-	fprintf(stdout, "\n 2. %s",sanaparit[vaihtoehdot_idx[2]].fin);
-	fprintf(stdout, "\n 3. %s",sanaparit[vaihtoehdot_idx[3]].fin);
-	fprintf(stdout, "\n 4. %s",sanaparit[vaihtoehdot_idx[4]].fin);
-	fprintf(stdout, "\n 5. %s",sanaparit[vaihtoehdot_idx[5]].fin);
-	fprintf(stdout, "\n 6. %s",sanaparit[vaihtoehdot_idx[6]].fin);
-	fprintf(stdout, "\n 7. %s",sanaparit[vaihtoehdot_idx[7]].fin);
-	fprintf(stdout, "\n 8. %s",sanaparit[vaihtoehdot_idx[8]].fin);
+	fprintf(stdout, ">> %s\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng);
+
+	print_vaihtoehdot(sanaparit, vaihtoehdot_idx);
 
 	if (sanaparit != NULL)
 		free(sanaparit);
@@ -107,7 +101,7 @@ randint(size_t alku, size_t loppu)
 size_t *
 random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivejä sanat.txt tiedostosta) */
 {
-	size_t 	 j = 0;
+	size_t	 j = 0;
 	size_t	 i = 0;
 	size_t	*t = NULL;
 
@@ -158,5 +152,14 @@ print_sanaparit(struct sana *sp, size_t koko)
 		if (strlen(sp[i].eng) > 0 && strlen(sp[i].fin) > 0)
 			fprintf(stdout, "%s = %s\n", sp[i].eng, sp[i].fin);
 	}
+}
+
+void
+print_vaihtoehdot(struct sana *sp, size_t *idx)
+{
+	size_t	i = 0;
+
+	for (i = 0; i < KYS_LKM; i++)
+		fprintf(stdout, "%2zu. %s", i + 1, sp[idx[i]].fin); /* sp == sanaparit, idx == vaihtoehdot_idx */
 }
 

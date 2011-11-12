@@ -16,5 +16,6 @@ size_t randint(size_t, size_t);
 size_t* random_idx_arr(size_t);
 struct sana wordsplitter(char *);
 void print_sanaparit(struct sana *, size_t);
+void print_vaihtoehdot(struct sana *, size_t *);
 
 #endif /* _ENGLANTI_SUOMI_H_ */
