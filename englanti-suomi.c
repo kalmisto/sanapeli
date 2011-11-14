@@ -20,6 +20,7 @@ main(int argc, const char *argv[])
 	size_t 	 vastaus_input;
 	size_t	 rivilkm;
 	size_t	 kysyttava;
+	size_t	 pisteet;
 	struct sana *sanaparit;
 
 	srand(time(NULL)); /*  alustetaan satunnaislukugeneraattori */
@@ -48,25 +49,32 @@ main(int argc, const char *argv[])
 	if (sanatiedosto != NULL) /* voidaan sulkea tässä vaiheessa */
 		fclose(sanatiedosto);
 
-	vaihtoehdot_idx = random_idx_arr(rivilkm);
+	i = 1;
+	pisteet = 0;
+	while (i <= PELILKM) {
+		vaihtoehdot_idx = random_idx_arr(rivilkm);
 
-	kysyttava = randint(0, KYS_LKM - 1);
+		kysyttava = randint(0, KYS_LKM - 1);
 
-	fprintf(stdout, "Sanapeli 1.0, englanti-suomi\n");
-	fprintf(stdout, "Valitse seuraavalle suomenkielinen vastine (1-8)\n\n");
-	fprintf(stdout, ">> %s\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng);
+		fprintf(stdout, "Valitse seuraavalle suomenkielinen vastine (1-8)\n\n");
+		fprintf(stdout, ">> %s\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng);
 
-	print_vaihtoehdot(sanaparit, vaihtoehdot_idx);
+		print_vaihtoehdot(sanaparit, vaihtoehdot_idx);
 
-	fprintf(stdout, " > ");
-	fscanf(stdin, "%zu", &vastaus_input);
-	if (vastaus_input == (kysyttava + 1)) {
-		fprintf(stdout, "Oikein \n");
-	} else {
-		fprintf(stdout, "Väärin \n");
+		fprintf(stdout, "[%zu/%zu] %zu > ", i, PELILKM, pisteet);
+		fscanf(stdin, "%zu", &vastaus_input);
+		if (vastaus_input == (kysyttava + 1)) {
+			fprintf(stdout, "Oikein \n");
+			pisteet++;
+		} else {
+			fprintf(stdout, "Väärin \n");
+		}
+		fprintf(stdout, "%s = ", sanaparit[vaihtoehdot_idx[kysyttava]].eng);
+		fprintf(stdout, "%s\n", sanaparit[vaihtoehdot_idx[kysyttava]].fin);
+
+		vastaus_input = 0;
+		i++;
 	}
-	fprintf(stdout, "%s = ", sanaparit[vaihtoehdot_idx[kysyttava]].eng);
-	fprintf(stdout, "%s\n", sanaparit[vaihtoehdot_idx[kysyttava]].fin);
 
 	if (sanaparit != NULL)
 		free(sanaparit);

@@ -4,6 +4,7 @@
 #define SANA_TIEDOSTO "sanat.txt"
 #define WORDLEN 128
 #define KYS_LKM 8
+#define PELILKM 10
 
 struct sana {
 	char eng[WORDLEN];
