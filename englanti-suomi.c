@@ -17,6 +17,7 @@ main(int argc, const char *argv[])
 	char	 rivi[BUFSIZ];
 	int	 i = 0;
 	size_t	*vaihtoehdot_idx = NULL;
+	size_t 	 vastaus_input;
 	size_t	 rivilkm;
 	size_t	 kysyttava;
 	struct sana *sanaparit;
@@ -24,13 +25,17 @@ main(int argc, const char *argv[])
 	srand(time(NULL)); /*  alustetaan satunnaislukugeneraattori */
 
 	sanatiedosto = fopen(SANA_TIEDOSTO, "r"); /* avataan sanat.txt sanatiedosto kahvaan */
+
 	if (sanatiedosto == NULL) {
 		fprintf(stderr, "Tiedoston avaus epäonnistui\n");
 		exit(1);
 	}
 
 	rivilkm = get_linecount(sanatiedosto); /*laskee sanatiedoston rivien lukumäärän*/
+
 	sanaparit = calloc(rivilkm, sizeof(struct sana)); /* varataan muistia sanalkm * sizeof(...) */
+
+
 	if (sanaparit == NULL) /* NULL viittaa tyhjään eli muistipaikkoja ei ole olemassa */
 		err(1, "muistin varaus epäonnistui");
 
@@ -52,6 +57,16 @@ main(int argc, const char *argv[])
 	fprintf(stdout, ">> %s\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng);
 
 	print_vaihtoehdot(sanaparit, vaihtoehdot_idx);
+
+	fprintf(stdout, " > ");
+	fscanf(stdin, "%zu", &vastaus_input);
+	if (vastaus_input == (kysyttava + 1)) {
+		fprintf(stdout, "Oikein \n");
+	} else {
+		fprintf(stdout, "Väärin \n");
+	}
+	fprintf(stdout, "%s = ", sanaparit[vaihtoehdot_idx[kysyttava]].eng);
+	fprintf(stdout, "%s\n", sanaparit[vaihtoehdot_idx[kysyttava]].fin);
 
 	if (sanaparit != NULL)
 		free(sanaparit);
@@ -98,10 +113,25 @@ randint(size_t alku, size_t loppu)
 	return (rand() % loppu + 1);
 }
 
+/* Löydyykö numer 'vertailtava' taulukosta t.
+ * Palauttaa 1, jos löytyy
+ * 0 muutoin
+ */
+int
+numberexist(size_t *t, size_t koko, size_t vertailtava)
+{
+	size_t	i = 0;
+
+	for (i = 0; i < koko; i++) {
+		if (t[i] == vertailtava)
+			return 1;
+	}
+	return 0;
+}
+
 size_t *
 random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivejä sanat.txt tiedostosta) */
 {
-	size_t	 j = 0;
 	size_t	 i = 0;
 	size_t	*t = NULL;
 
@@ -110,13 +140,9 @@ random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunna
 		err(1, "malloc failed in func: random_idx_arr()");
 
 	for (i = 0; i < KYS_LKM; i++) {
-		t[i] = randint(1, riveja);
-		while (i != 0 && j < i) { /* tarkastetaan onko satunnaisluku saatu jo aikaisemmin */
-			if (t[j] == t[i]) {
-				t[i] = randint(1, riveja); /*jos satunnaisluku on saatu aikaisemmin, luodaan uusi */
-				j--; /* koska while-silmukan j++ nostaa luvun haluttuun nollaan. eli taulukkoa aletaan taas käymään nolla-indeksista alkaen */
-			}
-			j++;
+		t[i] = randint(1, riveja - 1);
+		while (numberexist(t, i, t[i]) == 1) {
+			t[i] = randint(1, riveja - 1);
 		}
 	}
 
@@ -127,6 +153,7 @@ struct sana
 wordsplitter(char *rivi)
 {
 	char	*loppuosa;
+	char	*p;
 	struct sana leikattu;
 
 	memset(&leikattu, 0, sizeof(leikattu));
@@ -137,7 +164,14 @@ wordsplitter(char *rivi)
 
 	strtok_r(rivi, "=", &loppuosa);
 	strncpy(leikattu.eng, rivi, WORDLEN);
+	if ((p = strchr(leikattu.eng, '\n')) != NULL)
+		*p = '\0';
+
+	leikattu.eng[WORDLEN - 1] = '\0';
 	strncpy(leikattu.fin, loppuosa, WORDLEN);
+	leikattu.fin[WORDLEN - 1] = '\0';
+	if ((p = strchr(leikattu.fin, '\n')) != NULL)
+		*p = '\0';
 
 	return leikattu; /* 0 == virhe */
 
@@ -160,6 +194,6 @@ print_vaihtoehdot(struct sana *sp, size_t *idx)
 	size_t	i = 0;
 
 	for (i = 0; i < KYS_LKM; i++)
-		fprintf(stdout, "%2zu. %s", i + 1, sp[idx[i]].fin); /* sp == sanaparit, idx == vaihtoehdot_idx */
+		fprintf(stdout, "%2zu. %s\n", i + 1, sp[idx[i]].fin); /* sp == sanaparit, idx == vaihtoehdot_idx */
 }
 

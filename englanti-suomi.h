@@ -13,6 +13,7 @@ struct sana {
 size_t get_filesize(void);
 size_t get_linecount(FILE *);
 size_t randint(size_t, size_t);
+int numberexist(size_t *, size_t, size_t);
 size_t* random_idx_arr(size_t);
 struct sana wordsplitter(char *);
 void print_sanaparit(struct sana *, size_t);
