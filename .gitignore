@@ -1,3 +1,5 @@
 enkku
-*.swp
 sanat.txt
+*.swp
+tags*
+scores.txt

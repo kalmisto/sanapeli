@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <bsd/stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -16,43 +17,57 @@ main(int argc, const char *argv[])
 	FILE	*sanatiedosto = NULL;
 	char	 rivi[BUFSIZ];
 	int	 i = 0;
-	size_t	*vaihtoehdot_idx = NULL;
-	size_t 	 vastaus_input;
 	size_t	 rivilkm;
-	size_t	 kysyttava;
 	size_t	 pisteet;
 	struct sana *sanaparit;
-
-	srand(time(NULL)); /*  alustetaan satunnaislukugeneraattori */
 
 	sanatiedosto = fopen(SANA_TIEDOSTO, "r"); /* avataan sanat.txt sanatiedosto kahvaan */
 
 	if (sanatiedosto == NULL) {
-		fprintf(stderr, "Tiedoston avaus ep√§onnistui\n");
+		fprintf(stderr, "Tiedoston avaus ep‰onnistui\n");
 		exit(1);
 	}
 
-	rivilkm = get_linecount(sanatiedosto); /*laskee sanatiedoston rivien lukum√§√§r√§n*/
+	rivilkm = get_linecount(sanatiedosto); /*laskee sanatiedoston rivien lukum‰‰r‰n*/
 
 	sanaparit = calloc(rivilkm, sizeof(struct sana)); /* varataan muistia sanalkm * sizeof(...) */
 
 
-	if (sanaparit == NULL) /* NULL viittaa tyhj√§√§n eli muistipaikkoja ei ole olemassa */
-		err(1, "muistin varaus ep√§onnistui");
+	if (sanaparit == NULL) /* NULL viittaa tyhj‰‰n eli muistipaikkoja ei ole olemassa */
+		err(1, "muistin varaus ep‰onnistui");
 
 	while (fgets(rivi, BUFSIZ, sanatiedosto) != NULL) {
 		sanaparit[i] = wordsplitter(rivi);
 		if (sanaparit[i].eng[0] == '\0' || sanaparit[i].fin[0] == '\0')
-			err(3, "Apua apua, NULL rivill√§ %d\n", i+1);
+			err(3, "Apua apua, NULL rivill‰ %d\n", i+1);
 		i++;
 	}
-	if (sanatiedosto != NULL) /* voidaan sulkea t√§ss√§ vaiheessa */
+
+	pisteet = pelikierros(sanaparit, 5, rivilkm); /* TODO kysy t‰m‰ k‰ytt‰j‰lt‰ */
+
+	tallenna_scoret(pisteet);
+
+	if (sanatiedosto != NULL) /* voidaan sulkea t‰ss‰ vaiheessa */
 		fclose(sanatiedosto);
 
-	i = 1;
-	pisteet = 0;
-	while (i <= PELILKM) {
-		vaihtoehdot_idx = random_idx_arr(rivilkm);
+	if (sanaparit != NULL)
+		free(sanaparit);
+	sanaparit = NULL;
+
+	return 0;
+}
+
+size_t
+pelikierros(struct sana *sanaparit, size_t kierroslkm, size_t rivit)
+{
+	size_t	 i = 1;
+	size_t	 pojot = 0;
+	size_t	*vaihtoehdot_idx = NULL;
+	size_t   kysyttava;
+	size_t	 vastaus_input;
+
+	while (i <= kierroslkm) {
+		vaihtoehdot_idx = random_idx_arr(rivit);
 
 		kysyttava = randint(0, KYS_LKM - 1);
 
@@ -61,13 +76,13 @@ main(int argc, const char *argv[])
 
 		print_vaihtoehdot(sanaparit, vaihtoehdot_idx);
 
-		fprintf(stdout, "[%zu/%zu] %zu > ", i, PELILKM, pisteet);
+		fprintf(stdout, "[%zu/%zu] %zu > ", i, kierroslkm, pojot);
 		fscanf(stdin, "%zu", &vastaus_input);
 		if (vastaus_input == (kysyttava + 1)) {
-			fprintf(stdout, "Oikein \n");
-			pisteet++;
+			fprintf(stdout, "Oikein, ");
+			pojot++;
 		} else {
-			fprintf(stdout, "V√§√§rin \n");
+			fprintf(stdout, "V‰‰rin, ");
 		}
 		fprintf(stdout, "%s = ", sanaparit[vaihtoehdot_idx[kysyttava]].eng);
 		fprintf(stdout, "%s\n", sanaparit[vaihtoehdot_idx[kysyttava]].fin);
@@ -75,16 +90,14 @@ main(int argc, const char *argv[])
 		vastaus_input = 0;
 		i++;
 	}
-
-	if (sanaparit != NULL)
-		free(sanaparit);
 	if (vaihtoehdot_idx != NULL)
 		free(vaihtoehdot_idx);
-	sanaparit = NULL;
 	vaihtoehdot_idx = NULL;
 
-	return 0;
+	return pojot;
 }
+
+
 
 size_t
 get_filesize(void)
@@ -92,7 +105,7 @@ get_filesize(void)
 	struct stat sb;
 
 	if (stat(SANA_TIEDOSTO, &sb) < 0) {
-		fprintf(stderr, "Tiedoston avaus ep√§onnistui\n");
+		fprintf(stderr, "Tiedoston avaus ep‰onnistui\n");
 		exit(2);
 	}
 
@@ -118,11 +131,11 @@ get_linecount(FILE *fname)
 size_t
 randint(size_t alku, size_t loppu)
 {
-	return (rand() % loppu + 1);
+	return (arc4random() % loppu + 1);
 }
 
-/* L√∂ydyyk√∂ numer 'vertailtava' taulukosta t.
- * Palauttaa 1, jos l√∂ytyy
+/* Lˆydyykˆ numer 'vertailtava' taulukosta t.
+ * Palauttaa 1, jos lˆytyy
  * 0 muutoin
  */
 int
@@ -138,7 +151,7 @@ numberexist(size_t *t, size_t koko, size_t vertailtava)
 }
 
 size_t *
-random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivej√§ sanat.txt tiedostosta) */
+random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivej‰ sanat.txt tiedostosta) */
 {
 	size_t	 i = 0;
 	size_t	*t = NULL;
@@ -203,5 +216,17 @@ print_vaihtoehdot(struct sana *sp, size_t *idx)
 
 	for (i = 0; i < KYS_LKM; i++)
 		fprintf(stdout, "%2zu. %s\n", i + 1, sp[idx[i]].fin); /* sp == sanaparit, idx == vaihtoehdot_idx */
+}
+
+void
+tallenna_scoret(size_t pojot)
+{
+	FILE *scorefile = NULL;
+
+	scorefile = fopen(SCORES, "a+");
+	fprintf(scorefile, "%zu\n", pojot);
+
+	if (scorefile != NULL) /* voidaan sulkea t‰ss‰ vaiheessa */
+		fclose(scorefile);
 }
 
