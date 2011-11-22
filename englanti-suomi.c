@@ -17,7 +17,7 @@ main(int argc, const char *argv[])
 	FILE	*sanatiedosto = NULL;
 	char	 rivi[BUFSIZ];
 	int	 i = 0;
-	size_t	 rivilkm;
+	size_t	 rivilkm = 0;
 	size_t	 pisteet;
 	struct sana *sanaparit;
 
@@ -32,7 +32,6 @@ main(int argc, const char *argv[])
 
 	sanaparit = calloc(rivilkm, sizeof(struct sana)); /* varataan muistia sanalkm * sizeof(...) */
 
-
 	if (sanaparit == NULL) /* NULL viittaa tyhj‰‰n eli muistipaikkoja ei ole olemassa */
 		err(1, "muistin varaus ep‰onnistui");
 
@@ -43,9 +42,13 @@ main(int argc, const char *argv[])
 		i++;
 	}
 
-	pisteet = pelikierros(sanaparit, 5, rivilkm); /* TODO kysy t‰m‰ k‰ytt‰j‰lt‰ */
+	pisteet = pelikierros(sanaparit, PELILKM, rivilkm); 
 
 	tallenna_scoret(pisteet);
+
+	fprintf(stdout, "Pisteesi: %zu/%zu\n", pisteet, PELILKM);
+
+	print_highscores();
 
 	if (sanatiedosto != NULL) /* voidaan sulkea t‰ss‰ vaiheessa */
 		fclose(sanatiedosto);
@@ -150,6 +153,13 @@ numberexist(size_t *t, size_t koko, size_t vertailtava)
 	return 0;
 }
 
+int
+sort_function(const void *a, const void *b)
+{
+	return *(int *)a -  *(int *)b;
+}
+
+
 size_t *
 random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivej‰ sanat.txt tiedostosta) */
 {
@@ -216,6 +226,43 @@ print_vaihtoehdot(struct sana *sp, size_t *idx)
 
 	for (i = 0; i < KYS_LKM; i++)
 		fprintf(stdout, "%2zu. %s\n", i + 1, sp[idx[i]].fin); /* sp == sanaparit, idx == vaihtoehdot_idx */
+}
+
+void
+print_highscores()
+{
+	FILE	*h_scoret = NULL;
+	size_t	 rivilkm = 0;
+	size_t	*vertailtavat;
+	size_t	 rivi;
+	size_t	 i = 0;
+
+	h_scoret = fopen(SCORES, "r");
+	if (h_scoret == NULL) {
+		fprintf(stderr, "Scoretiedoston avaus ep‰onnistui\n");
+		exit(1);
+	}
+
+	rivilkm = get_linecount(h_scoret); /*laskee sanatiedoston rivien lukum‰‰r‰n*/
+
+	vertailtavat = calloc(rivilkm, sizeof(size_t)); 
+	if (vertailtavat == NULL) /* NULL viittaa tyhj‰‰n eli muistipaikkoja ei ole olemassa */
+		err(1, "muistin varaus ep‰onnistui");
+
+	while (fscanf(h_scoret, "%zu,%s,%zu", &aika, &nimi, &pisteet) != EOF) {
+		vertailtavat[i] = rivi;
+		i++;
+	}
+	qsort(vertailtavat, rivilkm, sizeof(vertailtavat[0]), sort_function);
+
+	fprintf(stdout, "High scoret: \n");
+
+	for (i = 0; i < rivilkm; i++) {
+		fprintf(stdout, "%zu\n", vertailtavat[i] );
+	}
+
+	if (h_scoret != NULL)
+		fclose(h_scoret);
 }
 
 void
