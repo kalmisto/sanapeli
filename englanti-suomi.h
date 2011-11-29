@@ -5,23 +5,34 @@
 #define SCORES "scores.txt"
 #define WORDLEN 128
 #define KYS_LKM 8
-#define PELILKM 10
+#define PELILKM 3
 
-struct sana {
+struct sana_st {
 	char eng[WORDLEN];
 	char fin[WORDLEN];
 };
 
-size_t pelikierros(struct sana *, size_t, size_t);
+struct high_score_st {
+	time_t aika;
+	char   nimi[WORDLEN];
+	size_t pojot;
+};
+
+
+
+size_t pelikierros(struct sana_st *, size_t, size_t);
 size_t get_filesize(void);
 size_t get_linecount(FILE *);
 size_t randint(size_t, size_t);
-size_t* random_idx_arr(size_t);
 int numberexist(size_t *, size_t, size_t);
-struct sana wordsplitter(char *);
-void print_sanaparit(struct sana *, size_t);
-void print_vaihtoehdot(struct sana *, size_t *);
-void print_highscores();
-void tallenna_scoret(size_t);
+size_t* random_idx_arr(size_t);
+struct sana_st wordsplitter(char *);
+struct high_score_st *luo_highscoretaulu(void);
+void print_sanaparit(struct sana_st *, size_t);
+void print_vaihtoehdot(struct sana_st *, size_t *);
+//void print_highscores();
+void tallenna_scoret(size_t, struct high_score_st *);
+int sort_function(const void *, const void *);
+
 
 #endif /* _ENGLANTI_SUOMI_H_ */

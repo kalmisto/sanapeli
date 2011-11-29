@@ -4,9 +4,10 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <bsd/stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#include <bsd/stdlib.h>
 
 #include "englanti-suomi.h"
 
@@ -19,7 +20,8 @@ main(int argc, const char *argv[])
 	int	 i = 0;
 	size_t	 rivilkm = 0;
 	size_t	 pisteet;
-	struct sana *sanaparit;
+	struct sana_st *sanaparit;
+	struct high_score_st *hightaulu;
 
 	sanatiedosto = fopen(SANA_TIEDOSTO, "r"); /* avataan sanat.txt sanatiedosto kahvaan */
 
@@ -30,7 +32,7 @@ main(int argc, const char *argv[])
 
 	rivilkm = get_linecount(sanatiedosto); /*laskee sanatiedoston rivien lukum‰‰r‰n*/
 
-	sanaparit = calloc(rivilkm, sizeof(struct sana)); /* varataan muistia sanalkm * sizeof(...) */
+	sanaparit = calloc(rivilkm, sizeof(struct sana_st)); /* varataan muistia sanalkm * sizeof(...) */
 
 	if (sanaparit == NULL) /* NULL viittaa tyhj‰‰n eli muistipaikkoja ei ole olemassa */
 		err(1, "muistin varaus ep‰onnistui");
@@ -42,13 +44,19 @@ main(int argc, const char *argv[])
 		i++;
 	}
 
-	pisteet = pelikierros(sanaparit, PELILKM, rivilkm); 
-
-	tallenna_scoret(pisteet);
+	pisteet = pelikierros(sanaparit, PELILKM, rivilkm);
+	hightaulu = luo_highscoretaulu();
+	for (i = 0; i <= 10; i++) {
+		fprintf(stdout, "ekatsekki %zu\n", hightaulu[i].pojot);
+	}
+	tallenna_scoret(pisteet, hightaulu);
+	for (i = 0; i <= 10; i++) {
+		fprintf(stdout, "tokatsekki %zu\n", hightaulu[i].pojot);
+	}
 
 	fprintf(stdout, "Pisteesi: %zu/%zu\n", pisteet, PELILKM);
 
-	print_highscores();
+/*	print_highscores(); */
 
 	if (sanatiedosto != NULL) /* voidaan sulkea t‰ss‰ vaiheessa */
 		fclose(sanatiedosto);
@@ -61,7 +69,7 @@ main(int argc, const char *argv[])
 }
 
 size_t
-pelikierros(struct sana *sanaparit, size_t kierroslkm, size_t rivit)
+pelikierros(struct sana_st *sanaparit, size_t kierroslkm, size_t rivit)
 {
 	size_t	 i = 1;
 	size_t	 pojot = 0;
@@ -153,12 +161,6 @@ numberexist(size_t *t, size_t koko, size_t vertailtava)
 	return 0;
 }
 
-int
-sort_function(const void *a, const void *b)
-{
-	return *(int *)a -  *(int *)b;
-}
-
 
 size_t *
 random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivej‰ sanat.txt tiedostosta) */
@@ -180,12 +182,12 @@ random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunna
 	return t;
 }
 
-struct sana
+struct sana_st
 wordsplitter(char *rivi)
 {
 	char	*loppuosa;
 	char	*p;
-	struct sana leikattu;
+	struct sana_st leikattu;
 
 	memset(&leikattu, 0, sizeof(leikattu));
 
@@ -209,7 +211,7 @@ wordsplitter(char *rivi)
 }
 
 void
-print_sanaparit(struct sana *sp, size_t koko)
+print_sanaparit(struct sana_st *sp, size_t koko)
 {
 	int i = 0;
 
@@ -220,7 +222,7 @@ print_sanaparit(struct sana *sp, size_t koko)
 }
 
 void
-print_vaihtoehdot(struct sana *sp, size_t *idx)
+print_vaihtoehdot(struct sana_st *sp, size_t *idx)
 {
 	size_t	i = 0;
 
@@ -228,7 +230,48 @@ print_vaihtoehdot(struct sana *sp, size_t *idx)
 		fprintf(stdout, "%2zu. %s\n", i + 1, sp[idx[i]].fin); /* sp == sanaparit, idx == vaihtoehdot_idx */
 }
 
-void
+struct high_score_st *
+luo_highscoretaulu(void)
+{
+	FILE			*h_scoret = NULL;
+	struct high_score_st	*highscoretaulu;
+	struct stat		 st;
+	size_t			 i = 0;
+
+	highscoretaulu = calloc(11, sizeof(struct high_score_st));
+	if (highscoretaulu == NULL) /* NULL viittaa tyhj‰‰n eli muistipaikkoja ei ole olemassa */
+		err(1, "muistinvaraus ep‰onnistui");
+
+
+	if (stat(SCORES, &st) == -1) { /* Tiedostoa ei lˆydy */
+		h_scoret = fopen(SCORES, "w");
+		if (h_scoret == NULL) {
+			err(10, "tiedostoa ei lˆytynyt %s", SCORES);
+		}
+		for (i = 0; i < 11; i++) {
+			fputs("1,#,2\n", h_scoret);
+		}
+		fclose(h_scoret);
+	}
+
+	h_scoret = fopen(SCORES, "r");
+	if (h_scoret == NULL) {
+		err(10, "tiedostoa ei lˆytynyt %s", SCORES);
+	}
+	for (i = 0; i < 10; i++) {
+		size_t luettu = 0;
+
+		luettu = fscanf(h_scoret, "%zu,%s,%zu", &highscoretaulu[i].aika, &highscoretaulu[i].nimi, &highscoretaulu[i].pojot);
+		if (luettu == 0)
+			break;
+	}
+
+	fclose(h_scoret);
+
+	return highscoretaulu;
+}
+
+/* Mvoid
 print_highscores()
 {
 	FILE	*h_scoret = NULL;
@@ -237,43 +280,65 @@ print_highscores()
 	size_t	 rivi;
 	size_t	 i = 0;
 
+
 	h_scoret = fopen(SCORES, "r");
 	if (h_scoret == NULL) {
 		fprintf(stderr, "Scoretiedoston avaus ep‰onnistui\n");
 		exit(1);
 	}
 
-	rivilkm = get_linecount(h_scoret); /*laskee sanatiedoston rivien lukum‰‰r‰n*/
+	rivilkm = get_linecount(h_scoret);
 
-	vertailtavat = calloc(rivilkm, sizeof(size_t)); 
-	if (vertailtavat == NULL) /* NULL viittaa tyhj‰‰n eli muistipaikkoja ei ole olemassa */
+	vertailtavat = calloc(rivilkm, sizeof(size_t));
+	if (vertailtavat == NULL)
 		err(1, "muistin varaus ep‰onnistui");
 
-	while (fscanf(h_scoret, "%zu,%s,%zu", &aika, &nimi, &pisteet) != EOF) {
+	while (fscanf(h_scoret, "%zu,%s,%zu", aika, &nimi, &pisteet) != EOF) {
 		vertailtavat[i] = rivi;
 		i++;
 	}
 	qsort(vertailtavat, rivilkm, sizeof(vertailtavat[0]), sort_function);
 
-	fprintf(stdout, "High scoret: \n");
+
+//	fprintf(stdout, "High scoret: %zu\n", pojot);
 
 	for (i = 0; i < rivilkm; i++) {
-		fprintf(stdout, "%zu\n", vertailtavat[i] );
+		fprintf(stdout, "%zu\n", vertailtavat[i]);
 	}
 
 	if (h_scoret != NULL)
 		fclose(h_scoret);
 }
-
+*/
 void
-tallenna_scoret(size_t pojot)
+tallenna_scoret(size_t uudet_pisteet, struct high_score_st *vertailtavat)
 {
-	FILE *scorefile = NULL;
+	time_t	 aika;
+	size_t	 i = 0;
 
-	scorefile = fopen(SCORES, "a+");
-	fprintf(scorefile, "%zu\n", pojot);
+	aika = time(NULL);
 
-	if (scorefile != NULL) /* voidaan sulkea t‰ss‰ vaiheessa */
-		fclose(scorefile);
+	vertailtavat[10].aika = (int)&aika;
+	(void)strncpy(vertailtavat[10].nimi, "quest", 5);
+	vertailtavat[10].pojot = uudet_pisteet;
+
+	for (i = 0; i <= 10; i++) {
+		fprintf(stdout, "vertailtavat+uusi %zu, %zu\n", vertailtavat[i].pojot, i);
+	}
+
+	qsort(vertailtavat, 11, sizeof(vertailtavat[0]), sort_function);
+	for (i = 0; i <= 10; i++) {
+		fprintf(stdout, "vertailtavat+uusi sorttauksen j‰lkeen %zu, %zu\n", vertailtavat[i].pojot, i);
+	}
+
+
 }
 
+int
+sort_function(const void *a, const void *b)
+{
+	struct high_score_st *ia = (struct high_score_st *)a;
+	struct high_score_st *ib = (struct high_score_st *)b;
+
+	return ib->pojot - ia->pojot;
+}
