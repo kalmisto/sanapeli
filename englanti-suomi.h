@@ -5,7 +5,7 @@
 #define SCORES "scores.txt"
 #define WORDLEN 128
 #define KYS_LKM 8
-#define PELILKM 3
+#define PELILKM 10
 
 struct sana_st {
 	char eng[WORDLEN];
@@ -14,8 +14,8 @@ struct sana_st {
 
 struct high_score_st {
 	time_t aika;
-	char   nimi[WORDLEN];
 	size_t pojot;
+	char   nimi[WORDLEN];
 };
 
 

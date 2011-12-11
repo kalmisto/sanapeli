@@ -45,25 +45,17 @@ main(int argc, const char *argv[])
 	}
 
 	pisteet = pelikierros(sanaparit, PELILKM, rivilkm);
-	hightaulu = luo_highscoretaulu();
-	for (i = 0; i <= 10; i++) {
-		fprintf(stdout, "ekatsekki %zu\n", hightaulu[i].pojot);
-	}
-	tallenna_scoret(pisteet, hightaulu);
-	for (i = 0; i <= 10; i++) {
-		fprintf(stdout, "tokatsekki %zu\n", hightaulu[i].pojot);
-	}
-
 	fprintf(stdout, "Pisteesi: %zu/%zu\n", pisteet, PELILKM);
+	hightaulu = luo_highscoretaulu();
+	tallenna_scoret(pisteet, hightaulu);
 
-/*	print_highscores(); */
+	fclose(sanatiedosto);
 
-	if (sanatiedosto != NULL) /* voidaan sulkea tässä vaiheessa */
-		fclose(sanatiedosto);
-
-	if (sanaparit != NULL)
-		free(sanaparit);
+	free(sanaparit);
 	sanaparit = NULL;
+
+	free(hightaulu);
+	hightaulu = NULL;
 
 	return 0;
 }
@@ -76,6 +68,8 @@ pelikierros(struct sana_st *sanaparit, size_t kierroslkm, size_t rivit)
 	size_t	*vaihtoehdot_idx = NULL;
 	size_t   kysyttava;
 	size_t	 vastaus_input;
+	time_t	 start, end;
+	double	 dif = 0;
 
 	while (i <= kierroslkm) {
 		vaihtoehdot_idx = random_idx_arr(rivit);
@@ -83,26 +77,39 @@ pelikierros(struct sana_st *sanaparit, size_t kierroslkm, size_t rivit)
 		kysyttava = randint(0, KYS_LKM - 1);
 
 		fprintf(stdout, "Valitse seuraavalle suomenkielinen vastine (1-8)\n\n");
-		fprintf(stdout, ">> %s\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng);
+		fprintf(stdout, ">> %s\n\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng);
 
 		print_vaihtoehdot(sanaparit, vaihtoehdot_idx);
-
-		fprintf(stdout, "[%zu/%zu] %zu > ", i, kierroslkm, pojot);
+		fprintf(stdout, "\n[%zu/%zu] %zu > ", i, kierroslkm, pojot);
+		time(&start);
 		fscanf(stdin, "%zu", &vastaus_input);
+		time(&end);
+		dif = difftime(end, start);
 		if (vastaus_input == (kysyttava + 1)) {
 			fprintf(stdout, "Oikein, ");
-			pojot++;
+			if (dif <= 3)
+				pojot = pojot + 20;
+			else if (dif <= 5)
+				pojot = pojot + 10;
+			else if (dif <= 6)
+				pojot = pojot + 8;
+			else if (dif <= 8)
+				pojot = pojot + 6;
+			else if (dif <= 10)
+				pojot = pojot + 4;
+			else if (dif <= 12)
+				pojot = pojot + 2;
+			else    pojot++;
 		} else {
 			fprintf(stdout, "Väärin, ");
 		}
 		fprintf(stdout, "%s = ", sanaparit[vaihtoehdot_idx[kysyttava]].eng);
-		fprintf(stdout, "%s\n", sanaparit[vaihtoehdot_idx[kysyttava]].fin);
+		fprintf(stdout, "%s, (aika %g sek)\n\n", sanaparit[vaihtoehdot_idx[kysyttava]].fin, dif);
 
 		vastaus_input = 0;
 		i++;
 	}
-	if (vaihtoehdot_idx != NULL)
-		free(vaihtoehdot_idx);
+	free(vaihtoehdot_idx);
 	vaihtoehdot_idx = NULL;
 
 	return pojot;
@@ -226,8 +233,9 @@ print_vaihtoehdot(struct sana_st *sp, size_t *idx)
 {
 	size_t	i = 0;
 
-	for (i = 0; i < KYS_LKM; i++)
+	for (i = 0; i < KYS_LKM; i++) {
 		fprintf(stdout, "%2zu. %s\n", i + 1, sp[idx[i]].fin); /* sp == sanaparit, idx == vaihtoehdot_idx */
+	}
 }
 
 struct high_score_st *
@@ -242,14 +250,13 @@ luo_highscoretaulu(void)
 	if (highscoretaulu == NULL) /* NULL viittaa tyhjään eli muistipaikkoja ei ole olemassa */
 		err(1, "muistinvaraus epäonnistui");
 
-
 	if (stat(SCORES, &st) == -1) { /* Tiedostoa ei löydy */
 		h_scoret = fopen(SCORES, "w");
 		if (h_scoret == NULL) {
 			err(10, "tiedostoa ei löytynyt %s", SCORES);
 		}
 		for (i = 0; i < 11; i++) {
-			fputs("1,#,2\n", h_scoret);
+			fputs(" , ,lsd\n", h_scoret);
 		}
 		fclose(h_scoret);
 	}
@@ -261,7 +268,7 @@ luo_highscoretaulu(void)
 	for (i = 0; i < 10; i++) {
 		size_t luettu = 0;
 
-		luettu = fscanf(h_scoret, "%zu,%s,%zu", &highscoretaulu[i].aika, &highscoretaulu[i].nimi, &highscoretaulu[i].pojot);
+		luettu = fscanf(h_scoret, "%zu,%zu,%s", &highscoretaulu[i].aika, &highscoretaulu[i].pojot, &highscoretaulu[i].nimi);
 		if (luettu == 0)
 			break;
 	}
@@ -271,67 +278,30 @@ luo_highscoretaulu(void)
 	return highscoretaulu;
 }
 
-/* Mvoid
-print_highscores()
-{
-	FILE	*h_scoret = NULL;
-	size_t	 rivilkm = 0;
-	size_t	*vertailtavat;
-	size_t	 rivi;
-	size_t	 i = 0;
-
-
-	h_scoret = fopen(SCORES, "r");
-	if (h_scoret == NULL) {
-		fprintf(stderr, "Scoretiedoston avaus epäonnistui\n");
-		exit(1);
-	}
-
-	rivilkm = get_linecount(h_scoret);
-
-	vertailtavat = calloc(rivilkm, sizeof(size_t));
-	if (vertailtavat == NULL)
-		err(1, "muistin varaus epäonnistui");
-
-	while (fscanf(h_scoret, "%zu,%s,%zu", aika, &nimi, &pisteet) != EOF) {
-		vertailtavat[i] = rivi;
-		i++;
-	}
-	qsort(vertailtavat, rivilkm, sizeof(vertailtavat[0]), sort_function);
-
-
-//	fprintf(stdout, "High scoret: %zu\n", pojot);
-
-	for (i = 0; i < rivilkm; i++) {
-		fprintf(stdout, "%zu\n", vertailtavat[i]);
-	}
-
-	if (h_scoret != NULL)
-		fclose(h_scoret);
-}
-*/
 void
 tallenna_scoret(size_t uudet_pisteet, struct high_score_st *vertailtavat)
 {
-	time_t	 aika;
+	FILE	 *h_scoret;
 	size_t	 i = 0;
 
-	aika = time(NULL);
-
-	vertailtavat[10].aika = (int)&aika;
+	vertailtavat[10].aika = time(NULL);
 	(void)strncpy(vertailtavat[10].nimi, "quest", 5);
 	vertailtavat[10].pojot = uudet_pisteet;
 
-	for (i = 0; i <= 10; i++) {
-		fprintf(stdout, "vertailtavat+uusi %zu, %zu\n", vertailtavat[i].pojot, i);
-	}
-
 	qsort(vertailtavat, 11, sizeof(vertailtavat[0]), sort_function);
-	for (i = 0; i <= 10; i++) {
-		fprintf(stdout, "vertailtavat+uusi sorttauksen jälkeen %zu, %zu\n", vertailtavat[i].pojot, i);
+
+	h_scoret = fopen(SCORES, "w");
+	if (h_scoret == NULL) {
+		fprintf(stderr, "Scoretiedoston avaus epäonnistui\n");
+		fclose(h_scoret);
+		exit(1);
 	}
 
-
+	for (i = 0; i < 10; i++) {
+		fprintf(h_scoret, "%zu,%zu,%s\n", vertailtavat[i].aika, vertailtavat[i].pojot, vertailtavat[i].nimi);
+		fprintf(stdout, "%zu  %s  %s",  vertailtavat[i].pojot, vertailtavat[i].nimi,asctime(localtime(&vertailtavat[i].aika)));
+	}
+	fclose(h_scoret);
 }
 
 int
@@ -342,3 +312,4 @@ sort_function(const void *a, const void *b)
 
 	return ib->pojot - ia->pojot;
 }
+
