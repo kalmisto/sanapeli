@@ -149,7 +149,8 @@ get_linecount(FILE *fname)
 size_t
 randint(size_t alku, size_t loppu)
 {
-	return (arc4random() % loppu + 1);
+	return (arc4random() % (loppu + 1));
+
 }
 
 /* Löydyykö numer 'vertailtava' taulukosta t.
