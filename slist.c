@@ -54,14 +54,15 @@ print_linked_list(void)
 	struct node *tmp;
 
 	tmp = head;
+	fprintf(stdout, "Seuraavissa vastasit väärin:\n");
 
 	do {
-		printf("%s%s\n", tmp->virhepari.eng, tmp->virhepari.fin);
+		printf("%s = %s\n", tmp->virhepari.eng, tmp->virhepari.fin);
 		tmp = tmp->next;
 	} while (tmp != NULL);
 }
 
-int
+/*void
 main(int argc, const char *argv[])
 {
 	struct sana_st	 spari1, spari2, spari3;
@@ -83,5 +84,5 @@ main(int argc, const char *argv[])
 	remove_begining();
 	print_linked_list();
 
-	return 0;
 }
+*/

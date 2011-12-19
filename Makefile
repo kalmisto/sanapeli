@@ -11,7 +11,7 @@ ifeq ($(OS), LINUX)
 	echo "HEI"
 endif
 
-all:
-	${CC} ${CFLAGS} -g -o enkku englanti-suomi.c
+all: slist
+	${CC} ${CFLAGS} -g -o enkku englanti-suomi.c slist.o
 slist:
-	${CC} ${CFLAGS} -o slist slist.c
+	${CC} ${CFLAGS} -c -o slist.o slist.c

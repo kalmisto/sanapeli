@@ -10,7 +10,7 @@
 #include <bsd/stdlib.h>
 
 #include "englanti-suomi.h"
-
+#include "slist.h"
 
 int
 main(int argc, const char *argv[])
@@ -26,29 +26,30 @@ main(int argc, const char *argv[])
 	sanatiedosto = fopen(SANA_TIEDOSTO, "r"); /* avataan sanat.txt sanatiedosto kahvaan */
 
 	if (sanatiedosto == NULL) {
-		fprintf(stderr, "Tiedoston avaus ep‰onnistui\n");
+		fprintf(stderr, "Tiedoston avaus ep√§onnistui\n");
 		exit(1);
 	}
 
-	rivilkm = get_linecount(sanatiedosto); /*laskee sanatiedoston rivien lukum‰‰r‰n*/
+	rivilkm = get_linecount(sanatiedosto); /*laskee sanatiedoston rivien lukum√§√§r√§n*/
 
 	sanaparit = calloc(rivilkm, sizeof(struct sana_st)); /* varataan muistia sanalkm * sizeof(...) */
 
-	if (sanaparit == NULL) /* NULL viittaa tyhj‰‰n eli muistipaikkoja ei ole olemassa */
-		err(1, "muistin varaus ep‰onnistui");
+	if (sanaparit == NULL) /* NULL viittaa tyhj√§√§n eli muistipaikkoja ei ole olemassa */
+		err(1, "muistin varaus ep√§onnistui");
 
 	while (fgets(rivi, BUFSIZ, sanatiedosto) != NULL) {
 		sanaparit[i] = wordsplitter(rivi);
 		if (sanaparit[i].eng[0] == '\0' || sanaparit[i].fin[0] == '\0')
-			err(3, "Apua apua, NULL rivill‰ %d\n", i+1);
+			err(3, "Apua apua, NULL rivill√§ %d\n", i+1);
 		i++;
 	}
 
 	pisteet = pelikierros(sanaparit, PELILKM, rivilkm);
-	fprintf(stdout, "Pisteesi: %zu/%zu\n", pisteet, PELILKM);
+	fprintf(stdout, "Pisteesi: %zu/%zu\n", pisteet, PELILKM*20); /*maksimipisteet=PELILKM*20*/
 	hightaulu = luo_highscoretaulu();
 	tallenna_scoret(pisteet, hightaulu);
-
+	fprintf(stdout, "\n");
+	print_linked_list();
 	fclose(sanatiedosto);
 
 	free(sanaparit);
@@ -102,6 +103,7 @@ pelikierros(struct sana_st *sanaparit, size_t kierroslkm, size_t rivit)
 			else    pojot++;
 		} else {
 			fprintf(stdout, "V‰‰rin, ");
+			insert_begining(&sanaparit[vaihtoehdot_idx[kysyttava]]);
 		}
 		fprintf(stdout, "%s = ", sanaparit[vaihtoehdot_idx[kysyttava]].eng);
 		fprintf(stdout, "%s, (aika %g sek)\n\n", sanaparit[vaihtoehdot_idx[kysyttava]].fin, dif);
@@ -153,8 +155,8 @@ randint(size_t alku, size_t loppu)
 
 }
 
-/* Lˆydyykˆ numer 'vertailtava' taulukosta t.
- * Palauttaa 1, jos lˆytyy
+/* L√∂ydyyk√∂ numer 'vertailtava' taulukosta t.
+ * Palauttaa 1, jos l√∂ytyy
  * 0 muutoin
  */
 int
@@ -171,7 +173,7 @@ numberexist(size_t *t, size_t koko, size_t vertailtava)
 
 
 size_t *
-random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivej‰ sanat.txt tiedostosta) */
+random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunnaisesti rivej√§ sanat.txt tiedostosta) */
 {
 	size_t	 i = 0;
 	size_t	*t = NULL;
@@ -248,10 +250,10 @@ luo_highscoretaulu(void)
 	size_t			 i = 0;
 
 	highscoretaulu = calloc(11, sizeof(struct high_score_st));
-	if (highscoretaulu == NULL) /* NULL viittaa tyhj‰‰n eli muistipaikkoja ei ole olemassa */
+	if (highscoretaulu == NULL) /* NULL viittaa tyhj√§√§n eli muistipaikkoja ei ole olemassa */
 		err(1, "muistinvaraus ep‰onnistui");
 
-	if (stat(SCORES, &st) == -1) { /* Tiedostoa ei lˆydy */
+	if (stat(SCORES, &st) == -1) { /* Tiedostoa ei l√∂ydy */
 		h_scoret = fopen(SCORES, "w");
 		if (h_scoret == NULL) {
 			err(10, "tiedostoa ei lˆytynyt %s", SCORES);

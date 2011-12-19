@@ -8,4 +8,7 @@ struct	node {
 	struct node *next;
 };
 
+void print_linked_list(void);
+void insert_begining(struct sana_st *);
+void remove_begining(void);
 #endif /* _SLIST_H_ */
