@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
+#include <unistd.h>
 #include <bsd/stdlib.h>
 
 #include "englanti-suomi.h"
@@ -18,10 +18,26 @@ main(int argc, const char *argv[])
 	FILE	*sanatiedosto = NULL;
 	char	 rivi[BUFSIZ];
 	int	 i = 0;
+	int	 ch;
 	size_t	 rivilkm = 0;
 	size_t	 pisteet;
 	struct sana_st *sanaparit;
 	struct high_score_st *hightaulu;
+
+	if (argc != 1) {
+		while ((ch = getopt(argc, (char *const*)argv, "a:")) != -1) {
+			switch (ch) {
+			case 'a' :
+				sanatiedosto = fopen(SANA_TIEDOSTO, "a"); /* avataan sanat.txt sanatiedosto kahvaan */
+				fprintf(sanatiedosto, "%s=%s\n", argv[2], argv[3]);
+				fclose(sanatiedosto);
+				return 0;
+			default:
+				fprintf(stdout, "Virheellinen optio. (Sanaparin lis‰‰miseen k‰yt‰ optiota 'a'.)\n");
+				return 1;
+			}
+		}
+	}
 
 	sanatiedosto = fopen(SANA_TIEDOSTO, "r"); /* avataan sanat.txt sanatiedosto kahvaan */
 
