@@ -120,6 +120,7 @@ pelikierros(struct sana_st *sanaparit, size_t kierroslkm, size_t rivit)
 		} else {
 			fprintf(stdout, "V‰‰rin, ");
 			insert_begining(&sanaparit[vaihtoehdot_idx[kysyttava]]);
+			kierroslkm--;
 		}
 		fprintf(stdout, "%s = ", sanaparit[vaihtoehdot_idx[kysyttava]].eng);
 		fprintf(stdout, "%s, (aika %g sek)\n\n", sanaparit[vaihtoehdot_idx[kysyttava]].fin, dif);
