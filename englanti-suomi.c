@@ -8,6 +8,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <bsd/stdlib.h>
+#include <termios.h>
 
 #include "englanti-suomi.h"
 #include "slist.h"
@@ -83,16 +84,24 @@ pelikierros(struct sana_st *sanaparit, size_t kierroslkm, size_t rivit)
 	size_t	 i = 1;
 	size_t	 pojot = 0;
 	size_t	*vaihtoehdot_idx = NULL;
+	size_t	*kysytyt = NULL;
 	size_t   kysyttava;
 	size_t	 vastaus_input;
 	time_t	 start, end;
 	double	 dif = 0;
 
+	kysytyt = calloc(PELILKM, sizeof(size_t));
+
 	while (i <= kierroslkm) {
 		vaihtoehdot_idx = random_idx_arr(rivit);
-
 		kysyttava = randint(0, KYS_LKM - 1);
-
+		if (i > 1) {
+			while (numberexist(kysytyt, i, vaihtoehdot_idx[kysyttava]) == 1) {
+				vaihtoehdot_idx = random_idx_arr(rivit);
+				kysyttava = randint(0, KYS_LKM - 1);
+			}
+		}
+		kysytyt[i - 1] = vaihtoehdot_idx[kysyttava];
 		fprintf(stdout, "Valitse seuraavalle suomenkielinen vastine (1-8)\n\n");
 		fprintf(stdout, ">> %s\n\n",sanaparit[vaihtoehdot_idx[kysyttava]].eng);
 
@@ -201,7 +210,7 @@ random_idx_arr(size_t riveja) /* generoidaan satunnaislukuja (= valitaan satunna
 
 	for (i = 0; i < KYS_LKM; i++) {
 		t[i] = randint(1, riveja - 1);
-		while (numberexist(t, i, t[i]) == 1) {
+		while ((numberexist(t, i, t[i])) == 1) {
 			t[i] = randint(1, riveja - 1);
 		}
 	}

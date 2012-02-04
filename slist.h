@@ -2,7 +2,6 @@
 #define _SLIST_H_
 
 #include "englanti-suomi.h"
-
 struct	node {
 	struct sana_st virhepari;
 	struct node *next;

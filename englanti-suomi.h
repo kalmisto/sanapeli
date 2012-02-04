@@ -30,7 +30,6 @@ struct sana_st wordsplitter(char *);
 struct high_score_st *luo_highscoretaulu(void);
 void print_sanaparit(struct sana_st *, size_t);
 void print_vaihtoehdot(struct sana_st *, size_t *);
-//void print_highscores();
 void tallenna_scoret(size_t, struct high_score_st *);
 int sort_function(const void *, const void *);
 

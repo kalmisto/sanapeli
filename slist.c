@@ -54,12 +54,13 @@ print_linked_list(void)
 	struct node *tmp;
 
 	tmp = head;
-	fprintf(stdout, "Seuraavissa vastasit väärin:\n");
-
-	do {
-		printf("%s = %s\n", tmp->virhepari.eng, tmp->virhepari.fin);
-		tmp = tmp->next;
-	} while (tmp != NULL);
+	if (head != NULL) {
+		fprintf(stdout, "Seuraavissa vastasit väärin:\n");
+		do {
+			printf("%s = %s\n", tmp->virhepari.eng, tmp->virhepari.fin);
+			tmp = tmp->next;
+		} while (tmp != NULL);
+	}
 }
 
 /*void
