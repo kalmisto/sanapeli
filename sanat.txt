@@ -88,4 +88,5 @@ slant=viettää, olla vinossa, suunnata, painottaa
 encumber=eståå, haitata
 sparsely=niukasti, harvasti, väljästi
 reside=asustaa, oleskella, asua
+onerous=työläs, rasittava
 prominent=tärkeä, merkittävä, silmiinpistävä, huomiota herättävä
